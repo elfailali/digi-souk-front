@@ -1,3 +1,18 @@
+# Common React .gitignore contents
+node_modules/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+build/
+dist/
+coverage/
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
 # Logs
 logs
 *.log
@@ -22,3 +37,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+
+Create a new repository on GitHub:
+
+Go to github.com and log in
+Click on the "+" icon in the top right corner
+Select "New repository"
+Name your repository
+Do not initialize with README, .gitignore, or license
+Click "Create repository"
