@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Check, X, AlertCircle } from 'lucide-react';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Check, X, AlertCircle } from "lucide-react";
+
+import { useEffect } from "react";
 
 interface PricingOption {
   duration: string;
@@ -19,91 +21,135 @@ interface PricingPlan {
   features: Array<{ text: string; included: boolean }>;
 }
 
-const pricingPlans: PricingPlan[] = [
+const defaultPricingPlans: PricingPlan[] = [
   {
-    id: 'start',
-    name: 'Pack Start',
-    description: 'Idéal pour les débutants en IPTV',
+    id: "start",
+    name: "Pack Start",
+    description: "Idéal pour les débutants en IPTV",
     channels: 5000,
-    videoQuality: 'HD',
+    videoQuality: "HD",
     devices: 1,
-    support: 'Email',
+    support: "Email",
     options: [
-      { duration: '6 mois', price: '390,99Dhs' },
-      { duration: '12 mois', price: '690,99Dhs' },
+      { duration: "6 mois", price: "390,99Dhs" },
+      { duration: "12 mois", price: "690,99Dhs" },
     ],
     features: [
-      { text: 'Chaînes francophones', included: true },
-      { text: 'Chaînes internationales', included: true },
-      { text: 'Films et séries à la demande', included: true },
-      { text: 'Guide des programmes électronique', included: true },
-      { text: 'Qualité 4K', included: false },
-      { text: 'Support technique prioritaire', included: false },
-      { text: 'Applications dédiées multi-appareils', included: false },
+      { text: "Chaînes francophones", included: true },
+      { text: "Chaînes internationales", included: true },
+      { text: "Films et séries à la demande", included: true },
+      { text: "Guide des programmes électronique", included: true },
+      { text: "Qualité 4K", included: false },
+      { text: "Support technique prioritaire", included: false },
+      { text: "Applications dédiées multi-appareils", included: false },
     ],
   },
   {
-    id: 'intense',
-    name: 'Pack Intense',
-    description: 'Notre offre la plus populaire',
+    id: "intense",
+    name: "Pack Intense",
+    description: "Notre offre la plus populaire",
     channels: 8000,
-    videoQuality: 'HD/4K',
+    videoQuality: "HD/4K",
     devices: 2,
-    support: 'Email & Chat',
+    support: "Email & Chat",
     options: [
-      { duration: '6 mois', price: '590,99Dhs' },
-      { duration: '12 mois', price: '990,99Dhs' },
+      { duration: "6 mois", price: "590,99Dhs" },
+      { duration: "12 mois", price: "990,99Dhs" },
     ],
     features: [
-      { text: 'Chaînes francophones', included: true },
-      { text: 'Chaînes internationales', included: true },
-      { text: 'Films et séries à la demande', included: true },
-      { text: 'Guide des programmes électronique', included: true },
-      { text: 'Qualité 4K', included: true },
-      { text: 'Support technique prioritaire', included: true },
-      { text: 'Applications dédiées multi-appareils', included: false },
+      { text: "Chaînes francophones", included: true },
+      { text: "Chaînes internationales", included: true },
+      { text: "Films et séries à la demande", included: true },
+      { text: "Guide des programmes électronique", included: true },
+      { text: "Qualité 4K", included: true },
+      { text: "Support technique prioritaire", included: true },
+      { text: "Applications dédiées multi-appareils", included: false },
     ],
   },
   {
-    id: 'infinity',
-    name: 'Pack Infinity',
-    description: 'Expérience IPTV ultime sans compromis',
+    id: "infinity",
+    name: "Pack Infinity",
+    description: "Expérience IPTV ultime sans compromis",
     channels: 12000,
-    videoQuality: 'HD/4K/8K',
+    videoQuality: "HD/4K/8K",
     devices: 4,
-    support: 'Email, Chat & Téléphone',
+    support: "Email, Chat & Téléphone",
     options: [
-      { duration: '6 mois', price: '799,99Dhs' },
-      { duration: '12 mois', price: '1399,99Dhs' },
+      { duration: "6 mois", price: "799,99Dhs" },
+      { duration: "12 mois", price: "1399,99Dhs" },
     ],
     features: [
-      { text: 'Chaînes francophones', included: true },
-      { text: 'Chaînes internationales', included: true },
-      { text: 'Films et séries à la demande', included: true },
-      { text: 'Guide des programmes électronique', included: true },
-      { text: 'Qualité 4K', included: true },
-      { text: 'Support technique prioritaire', included: true },
-      { text: 'Applications dédiées multi-appareils', included: true },
+      { text: "Chaînes francophones", included: true },
+      { text: "Chaînes internationales", included: true },
+      { text: "Films et séries à la demande", included: true },
+      { text: "Guide des programmes électronique", included: true },
+      { text: "Qualité 4K", included: true },
+      { text: "Support technique prioritaire", included: true },
+      { text: "Applications dédiées multi-appareils", included: true },
     ],
   },
 ];
 
+// getting the pricing plans from the server
+// Define the API URL based on the environment variables
+const API_URL = import.meta.env.VITE_API_URL;
+const fetchPricingPlans = async () => {
+  try {
+    const response = await fetch(`${API_URL}/api/pricing-plans`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data: PricingPlan[] = await response.json();
+    // Assuming the API returns an array of pricing plans
+    return data;
+  } catch (error) {
+    console.error("Error fetching pricing plans:", error);
+    return [];
+  }
+};
+
 const PricingTable: React.FC = () => {
-  const [selectedDuration, setSelectedDuration] = useState<string>('12 mois');
+  const [selectedDuration, setSelectedDuration] = useState<string>("12 mois");
+
+  // fetch pricing plans from the server if the server throws an error, use the default pricing plans
+  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>(defaultPricingPlans);
+  const [loading, setLoading] = useState(true);
+  // Fetch pricing plans from the server when the component mounts
+  useEffect(() => {
+    const fetchPlans = async () => {
+      const plans = await fetchPricingPlans();
+      setLoading(false);
+      if (plans.length > 0) {
+        setPricingPlans(plans);
+        console.log('plans',plans);
+      } else {
+        setPricingPlans(pricingPlans); // Use default pricing plans if API fails
+      }
+    };
+    fetchPlans();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg font-semibold">Chargement des forfaits...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full overflow-x-auto">
       <div className="min-w-max">
         <div className="flex justify-center mb-8">
           <div className="inline-flex items-center p-1 bg-muted rounded-lg">
-            {['6 mois', '12 mois'].map((duration) => (
+            {["6 mois", "12 mois"].map((duration) => (
               <button
                 key={duration}
                 onClick={() => setSelectedDuration(duration)}
                 className={`px-6 py-2 rounded-md transition-all ${
                   selectedDuration === duration
-                    ? 'bg-white shadow-sm text-primary font-medium'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? "bg-white shadow-sm text-primary font-medium"
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 {duration}
@@ -122,12 +168,12 @@ const PricingTable: React.FC = () => {
               <div
                 key={plan.id}
                 className={`card border-2 transition-all ${
-                  plan.id === 'intense'
-                    ? 'border-secondary relative md:scale-105 shadow-xl'
-                    : 'border-transparent hover:border-primary/20'
+                  plan.id === "intense"
+                    ? "border-secondary relative md:scale-105 shadow-xl"
+                    : "border-transparent hover:border-primary/20"
                 }`}
               >
-                {plan.id === 'intense' && (
+                {plan.id === "intense" && (
                   <div className="absolute -top-4 left-0 right-0 flex justify-center">
                     <span className="bg-secondary text-white text-sm font-medium px-4 py-1 rounded-full">
                       Plus populaire
@@ -146,7 +192,7 @@ const PricingTable: React.FC = () => {
                       {selectedOption?.price}
                     </span>
                     <span className="text-muted-foreground">
-                      {' '}
+                      {" "}
                       / {selectedOption?.duration}
                     </span>
                   </p>
@@ -154,9 +200,9 @@ const PricingTable: React.FC = () => {
                   <Link
                     to={`/contact?service=iptv&plan=${plan.id}&duration=${selectedDuration}`}
                     className={`w-full text-center py-3 px-4 rounded-lg font-medium mb-6 block transition-colors ${
-                      plan.id === 'intense'
-                        ? 'bg-secondary hover:bg-secondary/90 text-white'
-                        : 'btn-primary'
+                      plan.id === "intense"
+                        ? "bg-secondary hover:bg-secondary/90 text-white"
+                        : "btn-primary"
                     }`}
                   >
                     Sélectionner ce forfait
@@ -184,7 +230,7 @@ const PricingTable: React.FC = () => {
                         Appareils
                       </span>
                       <span className="w-1/2 font-medium">
-                        {plan.devices} simultané{plan.devices > 1 ? 's' : ''}
+                        {plan.devices} simultané{plan.devices > 1 ? "s" : ""}
                       </span>
                     </div>
                     <div className="flex items-center">
@@ -208,8 +254,8 @@ const PricingTable: React.FC = () => {
                           <span
                             className={
                               feature.included
-                                ? ''
-                                : 'text-muted-foreground line-through'
+                                ? ""
+                                : "text-muted-foreground line-through"
                             }
                           >
                             {feature.text}
@@ -231,9 +277,9 @@ const PricingTable: React.FC = () => {
           <p className="font-medium">Information importante</p>
           <p className="text-muted-foreground text-sm mt-1">
             Nos abonnements IPTV sont fournis à des fins de divertissement
-            personnel uniquement. DigiSouk n'est pas responsable de l'utilisation
-            inappropriée des services. Veuillez consulter la législation locale
-            concernant l'utilisation des services IPTV.
+            personnel uniquement. DigiSouk n'est pas responsable de
+            l'utilisation inappropriée des services. Veuillez consulter la
+            législation locale concernant l'utilisation des services IPTV.
           </p>
         </div>
       </div>
