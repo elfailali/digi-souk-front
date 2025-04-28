@@ -38,6 +38,7 @@ dist-ssr
 *.sln
 *.sw?
 
+<<<<<<< HEAD
 
 
 Create a new repository on GitHub:
@@ -48,3 +49,7 @@ Select "New repository"
 Name your repository
 Do not initialize with README, .gitignore, or license
 Click "Create repository"
+=======
+# environment variables
+.env
+>>>>>>> 12da1854c01365ed45ceaa58eb31e84a671c2648
